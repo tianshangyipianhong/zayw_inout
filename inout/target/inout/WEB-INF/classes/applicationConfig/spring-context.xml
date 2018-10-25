@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!--扫描业务层的包-->
+    <context:component-scan base-package="com.zay.inout.service"/>
+
+    <context:property-placeholder location="classpath:properties/jdbc.properties"></context:property-placeholder>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="driverClassName" value="${jdbc.driverName}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+        <property name="defaultAutoCommit" value="${jdbc.dac}"></property>
+        <property name="cacheState" value="${jdbc.cacheState}"></property>
+        <property name="maxTotal" value="${jdbc.maxTotal}"></property>
+        <property name="initialSize" value="${jdbc.initial}"></property>
+
+    </bean>
+
+    <!--配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!--告诉他数据源是谁？-->
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!--使用注解来控制事务-->
+    <tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--获取数据源-->
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:applicationConfig/mybatis-config.xml"></property>
+        <property name="mapperLocations" >
+           <list>
+               <!--扫描所有的mapper文件-->
+               <value>classpath:mapper/*.xml</value>
+           </list>
+        </property>
+    </bean>
+    <!--扫描生成所有的dao层对象-->
+    <bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.zay.inout.dao"></property>
+        <property name="SqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+    </bean>
+</beans>
